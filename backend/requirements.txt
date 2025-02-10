@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+spleeter
+pydub
+python-multipart
+python-dotenv
