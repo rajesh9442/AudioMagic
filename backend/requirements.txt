@@ -1,6 +1,6 @@
-fastapi
-uvicorn
-spleeter
-pydub
-python-multipart
-python-dotenv
+fastapi==0.115.8
+uvicorn==0.34.0
+spleeter==2.4.0
+pydub==0.25.1
+python-multipart==0.0.20
+python-dotenv==1.0.1
