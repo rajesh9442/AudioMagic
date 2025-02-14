@@ -1,10 +1,8 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import shutil
-import subprocess
-import time
 from core.audio_processor import AudioProcessor
 
 print("Starting FastAPI with GPU support...")
@@ -47,10 +45,7 @@ def cleanup_old_uploads(upload_dir: str, demucs_dir: str, max_files: int = 4):
                 print(f"Error deleting {file_to_delete}: {e}")
 
 @app.post("/process")
-async def process_file(
-    file: UploadFile = File(...),
-    mode: str = Form("music")
-):
+async def process_file(file: UploadFile = File(...)):
     try:
         # Save uploaded file
         file_path = os.path.join(UPLOAD_DIR, file.filename)
@@ -61,9 +56,12 @@ async def process_file(
         cleanup_old_uploads(UPLOAD_DIR, DEMUC_DIR, max_files=4)
 
         # Process audio with Demucs
-        output_path = processor.process_audio(file_path, mode)
-        relative_path = os.path.relpath(output_path, BASE_DIR)
-        return {"download_link": relative_path}
+        tracks = processor.process_audio(file_path)
+
+        return {
+            "vocals_link": os.path.relpath(tracks["vocals"], BASE_DIR),
+            "music_link": os.path.relpath(tracks["accompaniment"], BASE_DIR)
+        }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

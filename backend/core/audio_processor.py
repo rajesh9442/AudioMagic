@@ -4,10 +4,10 @@ from pydub import AudioSegment
 
 class AudioProcessor:
     def __init__(self):
-        self.model_name = "htdemucs"  # Best quality model
-        self.base_dir = os.getcwd()  # Ensure base directory is defined
-        self.output_dir = os.path.join(self.base_dir, "separated/demucs")  # Set correct path
-        os.makedirs(self.output_dir, exist_ok=True)  # Create directory if it doesn't exist
+        self.model_name = "htdemucs"
+        self.base_dir = os.getcwd()
+        self.output_dir = os.path.join(self.base_dir, "separated/demucs")
+        os.makedirs(self.output_dir, exist_ok=True)
 
     def separate_tracks(self, input_path: str):
         """
@@ -36,19 +36,8 @@ class AudioProcessor:
             "accompaniment": os.path.join(demucs_output_path, "no_vocals.wav")
         }
 
-    def process_audio(self, input_path: str, mode: str) -> str:
+    def process_audio(self, input_path: str):
         """
-        Process audio and return the separated file path (vocals or accompaniment).
+        Process audio and return paths for both vocals and accompaniment.
         """
-        try:
-            tracks = self.separate_tracks(input_path)
-            mode_lower = mode.lower()
-            if mode_lower in ["vocal", "vocals"]:
-                selected_file = tracks["vocals"]
-            else:
-                selected_file = tracks["accompaniment"]
-
-            return selected_file
-
-        except Exception as e:
-            raise RuntimeError(str(e))
+        return self.separate_tracks(input_path)
