@@ -15,4 +15,4 @@ temp/
 
 # Ignore pretrained models folder (adjust the folder name if needed)
 pretrained_models/
-spleeter/models/
+seperated/
