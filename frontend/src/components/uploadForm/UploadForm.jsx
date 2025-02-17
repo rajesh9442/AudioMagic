@@ -3,9 +3,11 @@ import "./UploadForm.css"; // Import CSS for styling
 
 const UploadForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [processingType, setProcessingType] = useState(""); // Dropdown selection
   const [originalAudio, setOriginalAudio] = useState("");
   const [vocalsAudio, setVocalsAudio] = useState("");
   const [musicAudio, setMusicAudio] = useState("");
+  const [meowAudio, setMeowAudio] = useState(""); // For Cat Version
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -20,6 +22,11 @@ const UploadForm = () => {
     }
   };
 
+  // Handle dropdown selection
+  const handleDropdownChange = (e) => {
+    setProcessingType(e.target.value);
+  };
+
   // Handle form submission to upload and process the audio file
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -29,13 +36,22 @@ const UploadForm = () => {
       return;
     }
 
+    if (!processingType) {
+      setErrorMessage("Please select a processing type.");
+      return;
+    }
+
     setErrorMessage("");
     setIsLoading(true);
     setVocalsAudio("");
     setMusicAudio("");
+    setMeowAudio("");
 
     const formData = new FormData();
     formData.append("file", selectedFile);
+    formData.append("mode", processingType); // Send dropdown selection to backend
+
+    console.log("Submitting request with mode:", processingType); // Debugging log
 
     try {
       const response = await fetch("http://localhost:8000/process", {
@@ -45,12 +61,18 @@ const UploadForm = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to process file");
+        throw new Error(errorData.detail || JSON.stringify(errorData));
       }
 
       const data = await response.json();
-      setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
-      setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
+
+      // Handle response based on mode selection
+      if (processingType === "Cat Version") {
+        setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
+      } else {
+        setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
+        setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
+      }
     } catch (error) {
       console.error("Error:", error);
       setErrorMessage(error.message);
@@ -74,13 +96,26 @@ const UploadForm = () => {
           {/* Play Original Audio */}
           {originalAudio && (
             <div className="audio-preview">
+              <h3>Original File</h3>
               <audio controls src={originalAudio}></audio>
             </div>
           )}
         </div>
 
+        {/* Dropdown for Processing Type (Only shown after file upload) */}
+        {selectedFile && (
+          <div className="dropdown-section">
+            <label>Choose Processing Type: </label>
+            <select value={processingType} onChange={handleDropdownChange}>
+              <option value="">-- Select Option --</option>
+              <option value="Vocal and Music">Vocal and Music</option>
+              <option value="Cat Version">Cat Version</option>
+            </select>
+          </div>
+        )}
+
         {/* Process Audio Button */}
-        <button type="submit" className="process-button" disabled={isLoading}>
+        <button type="submit" className="process-button" disabled={isLoading || !processingType}>
           {isLoading ? "Processing..." : "Process Audio"}
         </button>
       </form>
@@ -89,19 +124,26 @@ const UploadForm = () => {
 
       {/* Processed Audio Section */}
       <div className="processed-audio-section">
-        {/* Play Processed Vocals */}
-        {vocalsAudio && (
-          <div className="audio-box">
-            <h3>Vocals</h3>
-            <audio controls src={vocalsAudio}></audio>
-          </div>
+        {/* Play Processed Vocals & Music for "Vocal and Music" Mode */}
+        {processingType === "Vocal and Music" && vocalsAudio && musicAudio && (
+          <>
+            <div className="audio-box">
+              <h3>Vocals</h3>
+              <audio controls src={vocalsAudio}></audio>
+            </div>
+
+            <div className="audio-box">
+              <h3>Music</h3>
+              <audio controls src={musicAudio}></audio>
+            </div>
+          </>
         )}
 
-        {/* Play Processed Music */}
-        {musicAudio && (
+        {/* Play Final Meow Version for "Cat Version" Mode */}
+        {processingType === "Cat Version" && meowAudio && (
           <div className="audio-box">
-            <h3>Music</h3>
-            <audio controls src={musicAudio}></audio>
+            <h3>🐱 Cat Version</h3>
+            <audio controls src={meowAudio}></audio>
           </div>
         )}
       </div>
