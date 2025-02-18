@@ -51,6 +51,7 @@ class AudioProcessor:
         """
         MEOW_FILE = "data/cat/meow.wav"
         SAMPLE_RATE = 44100
+        temp_files = []  # Track temp files for cleanup
 
         print("🔹 Loading Whisper model and transcribing vocal file...")
         model = whisper.load_model("small", device="cpu")
@@ -98,6 +99,8 @@ class AudioProcessor:
                 pitch_shift = 0
 
             temp_out = f"temp_{w['word']}.wav"
+            temp_files.append(temp_out)  # Add to temp file tracking
+
             meow_stretched = stretch_meow_ffmpeg(meow_audio, duration, temp_out)
             final_meow = pitch_shift_segment(meow_stretched, pitch_shift)
 
@@ -113,6 +116,15 @@ class AudioProcessor:
 
         final_meow_audio.export(output_meow_vocal, format="wav")
         print(f"\n✅ Final Meow Vocal File Saved: {output_meow_vocal}")
+
+        # ✅ **Ensure Temp Files are Deleted**
+        for temp_file in temp_files:
+            try:
+                if os.path.exists(temp_file):
+                    os.remove(temp_file)
+                    print(f"🗑️ Deleted temp file: {temp_file}")
+            except Exception as e:
+                print(f"❌ Error deleting {temp_file}: {e}")
 
     def merge_meow_with_instrumental(self, instrumental_file: str, meow_vocal_file: str, output_final_mix: str):
         """
@@ -162,5 +174,10 @@ def stretch_meow_ffmpeg(input_audio, target_duration, output_file):
     input_audio.export(temp_input, format="wav")
     command = ["ffmpeg", "-y", "-i", temp_input, "-filter:a", f"atempo={desired_factor:.3f}", output_file]
     subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    # ✅ **Delete temp_meow.wav after processing**
+    if os.path.exists(temp_input):
+        os.remove(temp_input)
+        print(f"🗑️ Deleted temp file: {temp_input}")
 
     return AudioSegment.from_file(output_file)
