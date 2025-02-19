@@ -86,7 +86,7 @@ class AudioProcessor:
         print("\n🔹 Generating meow sounds for each word:")
         meow_audio = AudioSegment.from_file(MEOW_FILE)
         word_meow_segments = []
-
+        crossfade_duration = 100  # Duration in milliseconds for the crossfade effect
         for w in words_list:
             start, end = w["start"], w["end"]
             duration = end - start
@@ -103,7 +103,8 @@ class AudioProcessor:
 
             meow_stretched = stretch_meow_ffmpeg(meow_audio, duration, temp_out)
             final_meow = pitch_shift_segment(meow_stretched, pitch_shift)
-
+            # Apply fade in and fade out to create a crossfade effect.
+            final_meow = final_meow.fade_in(crossfade_duration).fade_out(crossfade_duration)
             word_meow_segments.append((start, final_meow))
 
         print(f"\n🔹 Overlaying meows onto a silent track...")
