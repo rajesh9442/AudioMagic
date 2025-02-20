@@ -4,12 +4,13 @@ import librosa
 import numpy as np
 import whisper
 from pydub import AudioSegment
-
+import logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 class AudioProcessor:
     def __init__(self):
         self.model_name = "htdemucs"
         self.base_dir = os.getcwd()
-        self.output_dir = os.path.join(self.base_dir, "separated/demucs")
+        self.output_dir = os.path.join(self.base_dir, "separated")
         os.makedirs(self.output_dir, exist_ok=True)
 
     def separate_tracks(self, input_path: str):
@@ -20,19 +21,21 @@ class AudioProcessor:
 
         # Run Demucs command
         cmd = [
-            "demucs", "--two-stems", "vocals",  # Separate only vocals & music
+            "demucs","-n",self.model_name, "--two-stems", "vocals",  # Separate only vocals & music
             "-o", self.output_dir,
             input_path
         ]
 
         try:
-            subprocess.run(cmd, check=True)  # Execute Demucs command
+            logging.debug(f" running cmd with : {cmd}")
+            # Execute Demucs command and capture output and error messages
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Demucs separation failed: {str(e)}")
 
         # Extract output file paths
         base_name = os.path.splitext(os.path.basename(input_path))[0]
-        demucs_output_path = os.path.join(self.output_dir, "htdemucs", base_name)
+        demucs_output_path = os.path.join(self.output_dir,self.model_name, base_name)
 
         return {
             "vocals": os.path.join(demucs_output_path, "vocals.wav"),

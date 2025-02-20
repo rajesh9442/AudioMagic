@@ -5,6 +5,7 @@ import os
 import shutil
 from core.audio_processor import AudioProcessor
 import logging
+import traceback
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -16,7 +17,7 @@ BASE_DIR = os.getcwd()
 UPLOAD_DIR = os.path.join(BASE_DIR, "temp")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-DEMUC_DIR = os.path.join(BASE_DIR, "separated/demucs")
+DEMUC_DIR = os.path.join(BASE_DIR, "separated")
 os.makedirs(DEMUC_DIR, exist_ok=True)
 
 app.add_middleware(
@@ -86,6 +87,8 @@ async def process_file(file: UploadFile = File(...), mode: str = Form(...)):
 
     except Exception as e:
         logging.error(f"❌ Error processing file: {str(e)}")
+        print("Traceback:")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/download/{file_path:path}")
