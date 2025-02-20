@@ -12,6 +12,7 @@ myenv
 
 # Ignore the temp folder that contains uploaded files and Spleeter outputs
 temp/
+data/
 
 # Ignore pretrained models folder (adjust the folder name if needed)
 pretrained_models/
