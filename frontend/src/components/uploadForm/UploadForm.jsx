@@ -3,11 +3,14 @@ import "./UploadForm.css"; // Import CSS for styling
 
 const UploadForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [processingType, setProcessingType] = useState(""); // Dropdown selection
+  const [youtubeLink, setYoutubeLink] = useState(""); // YouTube link state
+  const [processingType, setProcessingType] = useState("");
   const [originalAudio, setOriginalAudio] = useState("");
   const [vocalsAudio, setVocalsAudio] = useState("");
   const [musicAudio, setMusicAudio] = useState("");
-  const [meowAudio, setMeowAudio] = useState(""); // For Cat Version
+  const [meowAudio, setMeowAudio] = useState("");
+  const [vocalsVideo, setVocalsVideo] = useState(""); // New: Video with Vocals
+  const [musicVideo, setMusicVideo] = useState(""); // New: Video with Music
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -15,11 +18,22 @@ const UploadForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setSelectedFile(file);
+    setYoutubeLink(""); // Clear YouTube link if file is selected
 
     if (file) {
       const fileURL = URL.createObjectURL(file);
       setOriginalAudio(fileURL);
+    } else {
+      setOriginalAudio("");
     }
+  };
+
+  // Handle YouTube link input
+  const handleYoutubeLinkChange = (e) => {
+    const link = e.target.value;
+    setYoutubeLink(link);
+    setSelectedFile(null); // Clear file if YouTube link is provided
+    setOriginalAudio("");  // Clear original audio preview
   };
 
   // Handle dropdown selection
@@ -27,12 +41,12 @@ const UploadForm = () => {
     setProcessingType(e.target.value);
   };
 
-  // Handle form submission to upload and process the audio file
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedFile) {
-      setErrorMessage("Please select a file to upload.");
+    if (!selectedFile && !youtubeLink) {
+      setErrorMessage("Please select a file or enter a YouTube link.");
       return;
     }
 
@@ -41,17 +55,28 @@ const UploadForm = () => {
       return;
     }
 
+    if (youtubeLink && processingType !== "Vocal and Music") {
+      setErrorMessage("Only 'Vocal and Music' is supported for YouTube links.");
+      return;
+    }
+
     setErrorMessage("");
     setIsLoading(true);
     setVocalsAudio("");
     setMusicAudio("");
     setMeowAudio("");
+    setVocalsVideo("");
+    setMusicVideo("");
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("mode", processingType); // Send dropdown selection to backend
+    if (selectedFile) {
+      formData.append("file", selectedFile);
+    } else {
+      formData.append("youtube_link", youtubeLink); // Send YouTube link to backend
+    }
+    formData.append("mode", processingType);
 
-    console.log("Submitting request with mode:", processingType); // Debugging log
+    console.log("Submitting request with mode:", processingType);
 
     try {
       const response = await fetch("http://localhost:8000/process", {
@@ -61,13 +86,20 @@ const UploadForm = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.detail || JSON.stringify(errorData));
+        if (errorData.detail === "Link doesn't exist") {
+          setErrorMessage("Link doesn't exist");
+        } else {
+          setErrorMessage("An error occurred. Please try again.");
+        }
+        return;
       }
 
       const data = await response.json();
 
-      // Handle response based on mode selection
-      if (processingType === "Cat Version") {
+      if (youtubeLink && processingType === "Vocal and Music") {
+        setVocalsVideo(`http://localhost:8000/download/${data.vocals_video}`);
+        setMusicVideo(`http://localhost:8000/download/${data.music_video}`);
+      } else if (processingType === "Cat Version") {
         setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
       } else {
         setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
@@ -75,7 +107,7 @@ const UploadForm = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      setErrorMessage(error.message);
+      setErrorMessage("An unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -86,12 +118,25 @@ const UploadForm = () => {
       {/* Title */}
       <h1 className="title">Audio Magic</h1>
 
-      {/* File Input Section */}
+      {/* File Input & YouTube Link Section */}
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="file-input-section">
           <label className="file-label">
             <input type="file" accept="audio/*" onChange={handleFileChange} />
           </label>
+
+          <span className="or-text">OR</span>
+
+          <input
+            type="text"
+            placeholder="Paste YouTube link here"
+            value={youtubeLink}
+            onChange={handleYoutubeLinkChange}
+            className="youtube-input"
+          />
+
+          {/* Show selected file name if file is chosen */}
+          {selectedFile && <p>Selected File: {selectedFile.name}</p>}
 
           {/* Play Original Audio */}
           {originalAudio && (
@@ -102,8 +147,8 @@ const UploadForm = () => {
           )}
         </div>
 
-        {/* Dropdown for Processing Type (Only shown after file upload) */}
-        {selectedFile && (
+        {/* Dropdown for Processing Type */}
+        {(selectedFile || youtubeLink) && (
           <div className="dropdown-section">
             <label>Choose Processing Type: </label>
             <select value={processingType} onChange={handleDropdownChange}>
@@ -137,6 +182,21 @@ const UploadForm = () => {
               <audio controls src={musicAudio}></audio>
             </div>
           </>
+        )}
+
+        {/* Video Players for YouTube Processing */}
+        {processingType === "Vocal and Music" && vocalsVideo && (
+          <div className="video-box">
+            <h3>🎤 Video with Vocals</h3>
+            <video controls width="500" src={vocalsVideo}></video>
+          </div>
+        )}
+
+        {processingType === "Vocal and Music" && musicVideo && (
+          <div className="video-box">
+            <h3>🎵 Video with Music Only</h3>
+            <video controls width="500" src={musicVideo}></video>
+          </div>
         )}
 
         {/* Play Final Meow Version for "Cat Version" Mode */}
