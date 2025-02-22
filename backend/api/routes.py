@@ -84,7 +84,9 @@ def handle_vocal_music_mode(tracks, youtube_link, video_path):
         music_video = merge_audio_with_video(tracks["accompaniment"], video_path, "music_video.mp4")
         return {
             "vocals_video": vocals_video,
-            "music_video": music_video
+            "music_video": music_video,
+            "vocals_link": tracks["vocals"],
+            "music_link": tracks["accompaniment"]
         }
     else:
         return {

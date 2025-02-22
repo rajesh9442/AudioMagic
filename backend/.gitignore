@@ -16,4 +16,4 @@ data/
 
 # Ignore pretrained models folder (adjust the folder name if needed)
 pretrained_models/
-seperated/
+separated/

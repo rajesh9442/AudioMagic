@@ -99,6 +99,8 @@ const UploadForm = () => {
       if (youtubeLink && processingType === "Vocal and Music") {
         setVocalsVideo(`http://localhost:8000/download/${data.vocals_video}`);
         setMusicVideo(`http://localhost:8000/download/${data.music_video}`);
+        setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
+        setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
       } else if (processingType === "Cat Version") {
         setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
       } else {
@@ -170,33 +172,42 @@ const UploadForm = () => {
       {/* Processed Audio Section */}
       <div className="processed-audio-section">
         {/* Play Processed Vocals & Music for "Vocal and Music" Mode */}
-        {processingType === "Vocal and Music" && vocalsAudio && musicAudio && (
+        {(processingType === "Vocal and Music") && (
           <>
-            <div className="audio-box">
-              <h3>Vocals</h3>
-              <audio controls src={vocalsAudio}></audio>
-            </div>
+            {/* Vocals Section */}
+            {(vocalsAudio || vocalsVideo) && (
+              <div className="audio-box">
+                <h3>🎤 Vocals</h3>
+                {vocalsAudio && (
+                  <>
+                    <audio controls src={vocalsAudio}></audio>
+                  </>
+                )}
+                {vocalsVideo && (
+                  <>
+                    <video controls width="500" src={vocalsVideo}></video>
+                  </>
+                )}
+              </div>
+            )}
 
-            <div className="audio-box">
-              <h3>Music</h3>
-              <audio controls src={musicAudio}></audio>
-            </div>
+            {/* Music Section */}
+            {(musicAudio || musicVideo) && (
+              <div className="audio-box">
+                <h3>🎵 Music</h3>
+                {musicAudio && (
+                  <>
+                    <audio controls src={musicAudio}></audio>
+                  </>
+                )}
+                {musicVideo && (
+                  <>
+                    <video controls width="500" src={musicVideo}></video>
+                  </>
+                )}
+              </div>
+            )}
           </>
-        )}
-
-        {/* Video Players for YouTube Processing */}
-        {processingType === "Vocal and Music" && vocalsVideo && (
-          <div className="video-box">
-            <h3>🎤 Video with Vocals</h3>
-            <video controls width="500" src={vocalsVideo}></video>
-          </div>
-        )}
-
-        {processingType === "Vocal and Music" && musicVideo && (
-          <div className="video-box">
-            <h3>🎵 Video with Music Only</h3>
-            <video controls width="500" src={musicVideo}></video>
-          </div>
         )}
 
         {/* Play Final Meow Version for "Cat Version" Mode */}

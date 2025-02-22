@@ -1,42 +1,63 @@
 .processed-audio-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    max-width: 100%;
-    margin-top: 20px;
-  }
-  
-  .title {
-    text-align: center;
-    font-size: 2rem;
-    font-weight: bold;
-    margin-bottom: 20px;
-    color: black; /* Adjust based on theme */
-  }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 100%;
+  margin-top: 20px;
+}
 
-  .audio-box {
-    border: 1px solid black;
-    border-radius: 50px;
-    padding: 10px;
-    text-align: center;
-    width: 100%; /* Increased width to give space for audio slider */
-    min-width: 250px; /* Prevents it from being too small */
-    box-sizing: border-box;
-  }
-  
-  .audio-box p {
-    margin: 5px 0;
-    color: black;
-  }
-  
-  .audio-box audio {
-    width: 100%; /* Ensures full width for the slider */
-    max-width: 100%; /* Prevents overflow */
-  }
-  
-  /* YouTube Link Input */
+.title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: black; /* Adjust based on theme */
+}
+
+.audio-box {
+  border: 1px solid black;
+  border-radius: 20px;
+  padding: 10px;
+  text-align: center;
+  width: 100%; /* Full width for audio players */
+  max-width: 800px; /* To keep it responsive */
+  box-sizing: border-box;
+}
+
+.audio-box p {
+  margin: 5px 0;
+  color: black;
+}
+
+.audio-box audio {
+  width: 100%; /* Full width for audio controls */
+  max-width: 100%;
+}
+
+.video-section {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap; /* Ensures responsiveness */
+  gap: 20px;
+  width: 100%;
+}
+
+.video-box {
+  width: 48%; /* Two videos side by side */
+  min-width: 300px; /* Stacks vertically if screen too small */
+  border: 1px solid black;
+  border-radius: 20px;
+  padding: 10px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.video-box video {
+  width: 100%;
+  border-radius: 10px;
+}
+
 .youtube-input {
   margin-left: 10px;
   padding: 8px;
@@ -50,4 +71,11 @@
   margin: 0 10px;
   font-weight: bold;
   color: #666;
+}
+
+/* Responsive for smaller screens */
+@media (max-width: 768px) {
+  .video-box {
+      width: 100%; /* Stack videos on small screens */
+  }
 }
