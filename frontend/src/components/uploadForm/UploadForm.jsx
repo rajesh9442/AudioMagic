@@ -6,11 +6,13 @@ const UploadForm = () => {
   const [youtubeLink, setYoutubeLink] = useState(""); // YouTube link state
   const [processingType, setProcessingType] = useState("");
   const [originalAudio, setOriginalAudio] = useState("");
+  const [extractedAudio, setExtractedAudio] = useState(""); // ✅ Extracted Audio
+  const [originalVideo, setOriginalVideo] = useState(""); // ✅ Actual Video
   const [vocalsAudio, setVocalsAudio] = useState("");
   const [musicAudio, setMusicAudio] = useState("");
   const [meowAudio, setMeowAudio] = useState("");
-  const [vocalsVideo, setVocalsVideo] = useState(""); // New: Video with Vocals
-  const [musicVideo, setMusicVideo] = useState(""); // New: Video with Music
+  const [vocalsVideo, setVocalsVideo] = useState(""); // Video with Vocals
+  const [musicVideo, setMusicVideo] = useState(""); // Video with Music
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -33,7 +35,7 @@ const UploadForm = () => {
     const link = e.target.value;
     setYoutubeLink(link);
     setSelectedFile(null); // Clear file if YouTube link is provided
-    setOriginalAudio("");  // Clear original audio preview
+    setOriginalAudio(""); // Clear original audio preview
   };
 
   // Handle dropdown selection
@@ -67,6 +69,8 @@ const UploadForm = () => {
     setMeowAudio("");
     setVocalsVideo("");
     setMusicVideo("");
+    setExtractedAudio(""); // ✅ Clear Extracted Audio
+    setOriginalVideo(""); // ✅ Clear Original Video
 
     const formData = new FormData();
     if (selectedFile) {
@@ -101,6 +105,12 @@ const UploadForm = () => {
         setMusicVideo(`http://localhost:8000/download/${data.music_video}`);
         setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
         setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
+        setExtractedAudio(
+          `http://localhost:8000/download/${data.extracted_audio}`
+        ); // ✅ Extracted Audio
+        setOriginalVideo(
+          `http://localhost:8000/download/temp/youtube_video.mp4`
+        ); // ✅ Original Video
       } else if (processingType === "Cat Version") {
         setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
       } else {
@@ -162,8 +172,12 @@ const UploadForm = () => {
         )}
 
         {/* Process Audio Button */}
-        <button type="submit" className="process-button" disabled={isLoading || !processingType}>
-          {isLoading ? "Processing..." : "Process Audio"}
+        <button
+          type="submit"
+          className="process-button"
+          disabled={isLoading || !processingType}
+        >
+          {isLoading ? "Processing..." : "Process"}
         </button>
       </form>
 
@@ -171,8 +185,22 @@ const UploadForm = () => {
 
       {/* Processed Audio Section */}
       <div className="processed-audio-section">
+        {/* Original Video & Extracted Audio for YouTube */}
+        {(originalVideo || extractedAudio) && (
+          <div className="audio-box">
+            <h3>🎬 Original</h3>
+            {/* Extracted Audio */}
+            {extractedAudio && <audio controls src={extractedAudio}></audio>}
+
+            {/* Original Video */}
+            {originalVideo && (
+              <video controls width="500" src={originalVideo}></video>
+            )}
+          </div>
+        )}
+
         {/* Play Processed Vocals & Music for "Vocal and Music" Mode */}
-        {(processingType === "Vocal and Music") && (
+        {processingType === "Vocal and Music" && (
           <>
             {/* Vocals Section */}
             {(vocalsAudio || vocalsVideo) && (

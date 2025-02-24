@@ -64,7 +64,7 @@ async def process_file(
         tracks = processor.process_audio(audio_path)
 
         if mode == "Vocal and Music":
-            return handle_vocal_music_mode(tracks, youtube_link, video_path if youtube_link else None)
+            return handle_vocal_music_mode(tracks, youtube_link, video_path if youtube_link else None, audio_path)
         
         elif mode == "Cat Version":
             return handle_cat_version_mode(tracks)
@@ -77,7 +77,7 @@ async def process_file(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-def handle_vocal_music_mode(tracks, youtube_link, video_path):
+def handle_vocal_music_mode(tracks, youtube_link, video_path, audio_path):
     """Handles Vocal and Music mode logic."""
     if youtube_link:
         vocals_video = merge_audio_with_video(tracks["vocals"], video_path, "vocals_video.mp4")
@@ -86,7 +86,8 @@ def handle_vocal_music_mode(tracks, youtube_link, video_path):
             "vocals_video": vocals_video,
             "music_video": music_video,
             "vocals_link": tracks["vocals"],
-            "music_link": tracks["accompaniment"]
+            "music_link": tracks["accompaniment"],
+            "extracted_audio": audio_path
         }
     else:
         return {
