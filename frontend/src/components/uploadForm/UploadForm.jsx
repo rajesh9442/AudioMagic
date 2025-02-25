@@ -166,7 +166,7 @@ const UploadForm = () => {
             <select value={processingType} onChange={handleDropdownChange}>
               <option value="">-- Select Option --</option>
               <option value="Vocal and Music">Vocal and Music</option>
-              <option value="Cat Version">Cat Version</option>
+              {/* <option value="Cat Version">Cat Version</option> */}
             </select>
           </div>
         )}
