@@ -4,9 +4,16 @@ from api.routes import router
 
 app = FastAPI(debug=True)
 
+origins = [
+    "https://your-vercel-frontend.vercel.app",  # ✅ Vercel frontend URL
+    "http://localhost:5173",  # for local testing
+    "http://127.0.0.1:5173"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
