@@ -23,7 +23,7 @@ class AudioProcessor:
 
         cmd = [
             "demucs", "-n", self.model_name, "--two-stems", "vocals",
-            "-o", self.output_dir,
+            "-o", self.output_dir,"--mp3",
             input_path
         ]
 
@@ -37,8 +37,8 @@ class AudioProcessor:
         demucs_output_path = os.path.join(self.output_dir, self.model_name, base_name)
 
         return {
-            "vocals": os.path.join(demucs_output_path, "vocals.wav"),
-            "accompaniment": os.path.join(demucs_output_path, "no_vocals.wav")
+            "vocals": os.path.join(demucs_output_path, "vocals.mp3"),
+            "accompaniment": os.path.join(demucs_output_path, "no_vocals.mp3")
         }
 
     def process_audio(self, input_path: str):
