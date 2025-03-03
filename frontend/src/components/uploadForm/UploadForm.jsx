@@ -112,7 +112,7 @@ const UploadForm = () => {
           `http://localhost:8000/download/${data.extracted_audio}`
         );
         setOriginalVideo(
-          `http://localhost:8000/download/temp/youtube_video.mp4`
+          `http://localhost:8000/download/${data.original_video}`
         );
         setActiveTab("Original"); // Default to Original after processing
         setIsProcessed(true); // Show tabs after processing

@@ -143,7 +143,8 @@ def handle_vocal_music_mode(tracks, youtube_link, video_path, audio_path, temp_f
             "music_video": music_video,
             "vocals_link": tracks["vocals"],
             "music_link": tracks["accompaniment"],
-            "extracted_audio": audio_path
+            "extracted_audio": audio_path,
+            "original_video": video_path
         }
         
         # Track each file
