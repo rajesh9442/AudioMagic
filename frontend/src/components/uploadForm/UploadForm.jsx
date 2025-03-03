@@ -6,21 +6,23 @@ const UploadForm = () => {
   const [youtubeLink, setYoutubeLink] = useState(""); // YouTube link state
   const [processingType, setProcessingType] = useState("");
   const [originalAudio, setOriginalAudio] = useState("");
-  const [extractedAudio, setExtractedAudio] = useState(""); // ✅ Extracted Audio
-  const [originalVideo, setOriginalVideo] = useState(""); // ✅ Actual Video
+  const [extractedAudio, setExtractedAudio] = useState("");
+  const [originalVideo, setOriginalVideo] = useState("");
   const [vocalsAudio, setVocalsAudio] = useState("");
   const [musicAudio, setMusicAudio] = useState("");
   const [meowAudio, setMeowAudio] = useState("");
-  const [vocalsVideo, setVocalsVideo] = useState(""); // Video with Vocals
-  const [musicVideo, setMusicVideo] = useState(""); // Video with Music
+  const [vocalsVideo, setVocalsVideo] = useState("");
+  const [musicVideo, setMusicVideo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [activeTab, setActiveTab] = useState("Original"); // Tab state
+  const [isProcessed, setIsProcessed] = useState(false); // Control tab visibility
 
-  // Handle file selection & set preview
+  // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setSelectedFile(file);
-    setYoutubeLink(""); // Clear YouTube link if file is selected
+    setYoutubeLink("");
 
     if (file) {
       const fileURL = URL.createObjectURL(file);
@@ -34,8 +36,8 @@ const UploadForm = () => {
   const handleYoutubeLinkChange = (e) => {
     const link = e.target.value;
     setYoutubeLink(link);
-    setSelectedFile(null); // Clear file if YouTube link is provided
-    setOriginalAudio(""); // Clear original audio preview
+    setSelectedFile(null);
+    setOriginalAudio("");
   };
 
   // Handle dropdown selection
@@ -64,19 +66,20 @@ const UploadForm = () => {
 
     setErrorMessage("");
     setIsLoading(true);
+    setIsProcessed(false); // Hide tabs until processing is complete
     setVocalsAudio("");
     setMusicAudio("");
     setMeowAudio("");
     setVocalsVideo("");
     setMusicVideo("");
-    setExtractedAudio(""); // ✅ Clear Extracted Audio
-    setOriginalVideo(""); // ✅ Clear Original Video
+    setExtractedAudio("");
+    setOriginalVideo("");
 
     const formData = new FormData();
     if (selectedFile) {
       formData.append("file", selectedFile);
     } else {
-      formData.append("youtube_link", youtubeLink); // Send YouTube link to backend
+      formData.append("youtube_link", youtubeLink);
     }
     formData.append("mode", processingType);
 
@@ -107,10 +110,12 @@ const UploadForm = () => {
         setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
         setExtractedAudio(
           `http://localhost:8000/download/${data.extracted_audio}`
-        ); // ✅ Extracted Audio
+        );
         setOriginalVideo(
           `http://localhost:8000/download/temp/youtube_video.mp4`
-        ); // ✅ Original Video
+        );
+        setActiveTab("Original"); // Default to Original after processing
+        setIsProcessed(true); // Show tabs after processing
       } else if (processingType === "Cat Version") {
         setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
       } else {
@@ -127,10 +132,8 @@ const UploadForm = () => {
 
   return (
     <div className="app-container">
-      {/* Title */}
       <h1 className="title">Audio Magic</h1>
 
-      {/* File Input & YouTube Link Section */}
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="file-input-section">
           <label className="file-label">
@@ -147,10 +150,8 @@ const UploadForm = () => {
             className="youtube-input"
           />
 
-          {/* Show selected file name if file is chosen */}
           {selectedFile && <p>Selected File: {selectedFile.name}</p>}
 
-          {/* Play Original Audio */}
           {originalAudio && (
             <div className="audio-preview">
               <h3>Original File</h3>
@@ -159,19 +160,16 @@ const UploadForm = () => {
           )}
         </div>
 
-        {/* Dropdown for Processing Type */}
         {(selectedFile || youtubeLink) && (
           <div className="dropdown-section">
             <label>Choose Processing Type: </label>
             <select value={processingType} onChange={handleDropdownChange}>
               <option value="">-- Select Option --</option>
               <option value="Vocal and Music">Vocal and Music</option>
-              {/* <option value="Cat Version">Cat Version</option> */}
             </select>
           </div>
         )}
 
-        {/* Process Audio Button */}
         <button
           type="submit"
           className="process-button"
@@ -183,56 +181,73 @@ const UploadForm = () => {
 
       {errorMessage && <p className="error-message">Error: {errorMessage}</p>}
 
-      {/* Processed Audio Section */}
+      {isProcessed && youtubeLink && processingType === "Vocal and Music" && (
+        <div className="tab-container">
+          <button
+            className={`tab-button ${activeTab === "Original" ? "active" : ""}`}
+            onClick={() => setActiveTab("Original")}
+          >
+            Original
+          </button>
+          <button
+            className={`tab-button ${activeTab === "Vocals" ? "active" : ""}`}
+            onClick={() => setActiveTab("Vocals")}
+          >
+            Vocals
+          </button>
+          <button
+            className={`tab-button ${activeTab === "Music" ? "active" : ""}`}
+            onClick={() => setActiveTab("Music")}
+          >
+            Music
+          </button>
+        </div>
+      )}
+
       <div className="processed-audio-section">
-        {/* Original Video & Extracted Audio for YouTube */}
-        {(originalVideo || extractedAudio) && (
-          <div className="audio-box">
-            <h3>🎬 Original</h3>
-            {/* Extracted Audio */}
-            {extractedAudio && <audio controls src={extractedAudio}></audio>}
-
-            {/* Original Video */}
-            {originalVideo && (
-              <video controls width="500" src={originalVideo}></video>
-            )}
-          </div>
-        )}
-
-        {/* Play Processed Vocals & Music for "Vocal and Music" Mode */}
-        {processingType === "Vocal and Music" && (
+        {youtubeLink && processingType === "Vocal and Music" ? (
           <>
-            {/* Vocals Section */}
-            {(vocalsAudio || vocalsVideo) && (
+            {activeTab === "Original" && (originalVideo || extractedAudio) && (
               <div className="audio-box">
-                <h3>🎤 Vocals</h3>
-                {vocalsAudio && (
-                  <>
-                    <audio controls src={vocalsAudio}></audio>
-                  </>
+                <h3>🎬 Original</h3>
+                {extractedAudio && (
+                  <audio controls src={extractedAudio}></audio>
                 )}
-                {vocalsVideo && (
-                  <>
-                    <video controls width="500" src={vocalsVideo}></video>
-                  </>
+                {originalVideo && (
+                  <video controls width="500" src={originalVideo}></video>
                 )}
               </div>
             )}
 
-            {/* Music Section */}
-            {(musicAudio || musicVideo) && (
+            {activeTab === "Vocals" && (vocalsAudio || vocalsVideo) && (
+              <div className="audio-box">
+                <h3>🎤 Vocals</h3>
+                <audio controls src={vocalsAudio}></audio>
+                <video controls width="500" src={vocalsVideo}></video>
+              </div>
+            )}
+
+            {activeTab === "Music" && (musicAudio || musicVideo) && (
               <div className="audio-box">
                 <h3>🎵 Music</h3>
-                {musicAudio && (
-                  <>
-                    <audio controls src={musicAudio}></audio>
-                  </>
-                )}
-                {musicVideo && (
-                  <>
-                    <video controls width="500" src={musicVideo}></video>
-                  </>
-                )}
+                <audio controls src={musicAudio}></audio>
+                <video controls width="500" src={musicVideo}></video>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            {vocalsAudio && (
+              <div className="audio-box">
+                <h3>🎤 Vocals</h3>
+                <audio controls src={vocalsAudio}></audio>
+              </div>
+            )}
+
+            {musicAudio && (
+              <div className="audio-box">
+                <h3>🎵 Music</h3>
+                <audio controls src={musicAudio}></audio>
               </div>
             )}
           </>
