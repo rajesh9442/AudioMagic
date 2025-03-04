@@ -12,6 +12,7 @@ import uuid
 from datetime import datetime, timedelta
 import threading
 import logging
+import asyncio
 
 router = APIRouter()
 
@@ -86,16 +87,17 @@ async def process_file(
     youtube_link: str = Form(None), 
     mode: str = Form(...)
 ):
-    temp_folder = None
+    temp_folder = create_request_temp_folder()
     try:
-        temp_folder = create_request_temp_folder()
         # 🔄 Handle file upload or YouTube download
         if youtube_link:
-            video_path = download_youtube_video(youtube_link, temp_folder)
-            audio_path = extract_audio(video_path, temp_folder)
+            video_path = await asyncio.to_thread(download_youtube_video, youtube_link, temp_folder)
+            audio_path = await asyncio.to_thread(extract_audio, video_path, temp_folder)
+
             # Track the downloaded and extracted files
             track_temp_file(video_path, temp_folder)
             track_temp_file(audio_path, temp_folder)
+
         elif file:
             safe_filename = sanitize_filename(file.filename)
             file_path = os.path.join(temp_folder, safe_filename)
@@ -107,14 +109,14 @@ async def process_file(
             raise HTTPException(status_code=400, detail="No file or YouTube link provided.")
 
         # 🎵 Process audio
-        tracks = processor.process_audio(audio_path, temp_folder)
+        tracks = await asyncio.to_thread(processor.process_audio, audio_path, temp_folder)
 
         # Process based on mode and track all output files
         response = None
         if mode == "Vocal and Music":
-            response = handle_vocal_music_mode(tracks, youtube_link, video_path if youtube_link else None, audio_path, temp_folder)
+            response = await handle_vocal_music_mode(tracks, youtube_link, video_path if youtube_link else None, audio_path, temp_folder)
         elif mode == "Cat Version":
-            response = handle_cat_version_mode(tracks, temp_folder)
+            response = await asyncio.to_thread(handle_cat_version_mode, tracks, temp_folder)
             if os.path.exists(response["final_meow_music"]):
                 track_temp_file(response["final_meow_music"], temp_folder)
 
@@ -123,21 +125,38 @@ async def process_file(
         return response
 
     except HTTPException as http_err:
-        if temp_folder and os.path.exists(temp_folder):
+        if os.path.exists(temp_folder):
             cleanup_temp_folder(temp_folder)
         raise http_err
     except Exception as e:
-        if temp_folder and os.path.exists(temp_folder):
+        if os.path.exists(temp_folder):
             cleanup_temp_folder(temp_folder)
         raise HTTPException(status_code=500, detail=str(e))
 
-def handle_vocal_music_mode(tracks, youtube_link, video_path, audio_path, temp_folder):
-    """Handles Vocal and Music mode logic."""
+
+async def merge_audio_with_video(audio_path, video_path, output_name, temp_folder):
+    """Merges audio with video asynchronously."""
+    output_path = os.path.join(temp_folder, output_name)
+    command = [
+        "ffmpeg", "-y", "-i", video_path, "-i", audio_path,
+        "-map", "0:v:0", "-map", "1:a:0", 
+        "-c:v", "copy", 
+        "-c:a", "aac", 
+        "-shortest", output_path
+    ]
+    await asyncio.to_thread(run_ffmpeg, command)
+    validate_file_exists(output_path, "Merged video file is missing or empty.")
+    return output_path
+
+async def handle_vocal_music_mode(tracks, youtube_link, video_path, audio_path, temp_folder):
+    """Handles Vocal and Music mode logic asynchronously."""
     if youtube_link:
-        vocals_video = merge_audio_with_video(tracks["vocals"], video_path, "vocals_video.mp4", temp_folder)
-        music_video = merge_audio_with_video(tracks["accompaniment"], video_path, "music_video.mp4", temp_folder)
-        
-        # Track all files that need to be downloadable
+        vocals_video, music_video = await asyncio.gather(
+            asyncio.to_thread(merge_audio_with_video, tracks["vocals"], video_path, "vocals_video.mp4", temp_folder),
+            asyncio.to_thread(merge_audio_with_video, tracks["accompaniment"], video_path, "music_video.mp4", temp_folder)
+        )
+
+        # Track all files that need to be downloadable, including the original video
         files_to_track = {
             "vocals_video": vocals_video,
             "music_video": music_video,
@@ -146,24 +165,24 @@ def handle_vocal_music_mode(tracks, youtube_link, video_path, audio_path, temp_f
             "extracted_audio": audio_path,
             "original_video": video_path
         }
-        
-        # Track each file
-        for path in files_to_track.values():
-            if isinstance(path, str) and os.path.exists(path):
-                track_temp_file(path, temp_folder)
-                
+
+        # Track each file asynchronously
+        await asyncio.gather(
+            *[asyncio.to_thread(track_temp_file, path, temp_folder) for path in files_to_track.values() if isinstance(path, str) and os.path.exists(path)]
+        )
+
         return files_to_track
     else:
         # Track the separated audio files
         for path in [tracks["vocals"], tracks["accompaniment"]]:
             if isinstance(path, str) and os.path.exists(path):
                 track_temp_file(path, temp_folder)
-                
+
         return {
             "vocals_link": tracks["vocals"],
             "music_link": tracks["accompaniment"]
         }
-
+    
 def handle_cat_version_mode(tracks, temp_folder):
     """Handles Cat Version mode logic."""
     meow_vocal_path = os.path.join(temp_folder, "meow_vocal_adjusted.wav")
