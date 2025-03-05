@@ -30,6 +30,10 @@ const UploadForm = () => {
     } else {
       setOriginalAudio("");
     }
+  
+    setProcessingType("");
+    setErrorMessage("");
+    resetProcessedData();
   };
 
   const handleYoutubeLinkChange = (e) => {
@@ -37,6 +41,23 @@ const UploadForm = () => {
     setYoutubeLink(link);
     setSelectedFile(null);
     setOriginalAudio("");
+  
+    setProcessingType("");
+    setErrorMessage("");
+    resetProcessedData();
+  };
+  
+
+  const resetProcessedData = () => {
+    setVocalsAudio("");
+    setMusicAudio("");
+    setMeowAudio("");
+    setVocalsVideo("");
+    setMusicVideo("");
+    setExtractedAudio("");
+    setOriginalVideo("");
+    setIsProcessed(false);
+    setActiveTab("Original");
   };
 
   const handleDropdownChange = (e) => {
@@ -47,12 +68,12 @@ const UploadForm = () => {
     e.preventDefault();
 
     if (!selectedFile && !youtubeLink) {
-      setErrorMessage("Please select a file or enter a YouTube link.");
+      // setErrorMessage("Please select a file or enter a YouTube link.");
       return;
     }
 
     if (!processingType) {
-      setErrorMessage("Please select a processing type.");
+      // setErrorMessage("Please select a processing type.");
       return;
     }
 
@@ -64,13 +85,7 @@ const UploadForm = () => {
     setErrorMessage("");
     setIsLoading(true);
     setIsProcessed(false);
-    setVocalsAudio("");
-    setMusicAudio("");
-    setMeowAudio("");
-    setVocalsVideo("");
-    setMusicVideo("");
-    setExtractedAudio("");
-    setOriginalVideo("");
+    resetProcessedData();
 
     const formData = new FormData();
     if (selectedFile) {
@@ -166,7 +181,7 @@ const UploadForm = () => {
         <button
           type="submit"
           className="process-button"
-          disabled={isLoading || !processingType}
+          disabled={isLoading || !processingType || (!selectedFile && !youtubeLink)}
         >
           {isLoading ? "Processing..." : "Process"}
         </button>
