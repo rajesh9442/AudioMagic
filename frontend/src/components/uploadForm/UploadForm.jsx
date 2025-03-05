@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import "./UploadForm.css"; // Import CSS for styling
+import AudioPlayer from "./AudioPlayer";
+import "./UploadForm.css";
 
 const UploadForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [youtubeLink, setYoutubeLink] = useState(""); // YouTube link state
+  const [youtubeLink, setYoutubeLink] = useState("");
   const [processingType, setProcessingType] = useState("");
   const [originalAudio, setOriginalAudio] = useState("");
   const [extractedAudio, setExtractedAudio] = useState("");
@@ -15,10 +16,9 @@ const UploadForm = () => {
   const [musicVideo, setMusicVideo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [activeTab, setActiveTab] = useState("Original"); // Tab state
-  const [isProcessed, setIsProcessed] = useState(false); // Control tab visibility
+  const [activeTab, setActiveTab] = useState("Original");
+  const [isProcessed, setIsProcessed] = useState(false);
 
-  // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setSelectedFile(file);
@@ -32,7 +32,6 @@ const UploadForm = () => {
     }
   };
 
-  // Handle YouTube link input
   const handleYoutubeLinkChange = (e) => {
     const link = e.target.value;
     setYoutubeLink(link);
@@ -40,12 +39,10 @@ const UploadForm = () => {
     setOriginalAudio("");
   };
 
-  // Handle dropdown selection
   const handleDropdownChange = (e) => {
     setProcessingType(e.target.value);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -66,7 +63,7 @@ const UploadForm = () => {
 
     setErrorMessage("");
     setIsLoading(true);
-    setIsProcessed(false); // Hide tabs until processing is complete
+    setIsProcessed(false);
     setVocalsAudio("");
     setMusicAudio("");
     setMeowAudio("");
@@ -108,14 +105,10 @@ const UploadForm = () => {
         setMusicVideo(`http://localhost:8000/download/${data.music_video}`);
         setVocalsAudio(`http://localhost:8000/download/${data.vocals_link}`);
         setMusicAudio(`http://localhost:8000/download/${data.music_link}`);
-        setExtractedAudio(
-          `http://localhost:8000/download/${data.extracted_audio}`
-        );
-        setOriginalVideo(
-          `http://localhost:8000/download/${data.original_video}`
-        );
-        setActiveTab("Original"); // Default to Original after processing
-        setIsProcessed(true); // Show tabs after processing
+        setExtractedAudio(`http://localhost:8000/download/${data.extracted_audio}`);
+        setOriginalVideo(`http://localhost:8000/download/${data.original_video}`);
+        setActiveTab("Original");
+        setIsProcessed(true);
       } else if (processingType === "Cat Version") {
         setMeowAudio(`http://localhost:8000/download/${data.final_meow_music}`);
       } else {
@@ -155,7 +148,7 @@ const UploadForm = () => {
           {originalAudio && (
             <div className="audio-preview">
               <h3>Original File</h3>
-              <audio controls src={originalAudio}></audio>
+              <AudioPlayer src={originalAudio} />
             </div>
           )}
         </div>
@@ -211,10 +204,10 @@ const UploadForm = () => {
               <div className="audio-box">
                 <h3>🎬 Original</h3>
                 {extractedAudio && (
-                  <audio controls src={extractedAudio}></audio>
+                  <AudioPlayer src={extractedAudio} />
                 )}
                 {originalVideo && (
-                  <video controls width="500" src={originalVideo}></video>
+                  <video controls src={originalVideo}></video>
                 )}
               </div>
             )}
@@ -222,16 +215,16 @@ const UploadForm = () => {
             {activeTab === "Vocals" && (vocalsAudio || vocalsVideo) && (
               <div className="audio-box">
                 <h3>🎤 Vocals</h3>
-                <audio controls src={vocalsAudio}></audio>
-                <video controls width="500" src={vocalsVideo}></video>
+                <AudioPlayer src={vocalsAudio} />
+                <video controls src={vocalsVideo}></video>
               </div>
             )}
 
             {activeTab === "Music" && (musicAudio || musicVideo) && (
               <div className="audio-box">
                 <h3>🎵 Music</h3>
-                <audio controls src={musicAudio}></audio>
-                <video controls width="500" src={musicVideo}></video>
+                <AudioPlayer src={musicAudio} />
+                <video controls src={musicVideo}></video>
               </div>
             )}
           </>
@@ -240,24 +233,23 @@ const UploadForm = () => {
             {vocalsAudio && (
               <div className="audio-box">
                 <h3>🎤 Vocals</h3>
-                <audio controls src={vocalsAudio}></audio>
+                <AudioPlayer src={vocalsAudio} />
               </div>
             )}
 
             {musicAudio && (
               <div className="audio-box">
                 <h3>🎵 Music</h3>
-                <audio controls src={musicAudio}></audio>
+                <AudioPlayer src={musicAudio} />
               </div>
             )}
           </>
         )}
 
-        {/* Play Final Meow Version for "Cat Version" Mode */}
         {processingType === "Cat Version" && meowAudio && (
           <div className="audio-box">
             <h3>🐱 Cat Version</h3>
-            <audio controls src={meowAudio}></audio>
+            <AudioPlayer src={meowAudio} />
           </div>
         )}
       </div>
