@@ -46,7 +46,6 @@ const UploadForm = () => {
     setErrorMessage("");
     resetProcessedData();
   };
-  
 
   const resetProcessedData = () => {
     setVocalsAudio("");
@@ -145,7 +144,12 @@ const UploadForm = () => {
       <form onSubmit={handleSubmit} className="upload-form">
         <div className="file-input-section">
           <label className="file-label">
-            <input type="file" accept="audio/*" onChange={handleFileChange} />
+            <input 
+              type="file" 
+              accept="audio/*" 
+              onChange={handleFileChange} 
+              disabled={isLoading} 
+            />
           </label>
 
           <span className="or-text">OR</span>
@@ -156,6 +160,7 @@ const UploadForm = () => {
             value={youtubeLink}
             onChange={handleYoutubeLinkChange}
             className="youtube-input"
+            disabled={isLoading}
           />
 
           {selectedFile && <p>Selected File: {selectedFile.name}</p>}
@@ -171,7 +176,7 @@ const UploadForm = () => {
         {(selectedFile || youtubeLink) && (
           <div className="dropdown-section">
             <label>Choose Processing Type: </label>
-            <select value={processingType} onChange={handleDropdownChange}>
+            <select value={processingType} onChange={handleDropdownChange} disabled={isLoading}>
               <option value="">-- Select Option --</option>
               <option value="Vocal and Music">Vocal and Music</option>
             </select>
@@ -188,7 +193,7 @@ const UploadForm = () => {
       </form>
 
       {errorMessage && <p className="error-message">Error: {errorMessage}</p>}
-
+      
       {isProcessed && youtubeLink && processingType === "Vocal and Music" && (
         <div className="tab-container">
           <button
