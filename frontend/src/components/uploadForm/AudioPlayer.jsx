@@ -7,6 +7,7 @@ const AudioPlayer = ({ src }) => {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef(null);
   const progressRef = useRef(null);
 
@@ -37,6 +38,15 @@ const AudioPlayer = ({ src }) => {
         audio.removeEventListener("timeupdate", handleTimeUpdate);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      const handleCanPlay = () => setIsLoading(false);
+      audio.addEventListener('canplay', handleCanPlay);
+      return () => audio.removeEventListener('canplay', handleCanPlay);
+    }
   }, []);
 
   // Reset player when src changes
