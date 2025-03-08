@@ -8,7 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const UploadForm = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [youtubeLink, setYoutubeLink] = useState("");
-  const [processingType, setProcessingType] = useState("");
+  const [processingType, setProcessingType] = useState("Vocal and Music");
   const [originalAudio, setOriginalAudio] = useState("");
   const [extractedAudio, setExtractedAudio] = useState("");
   const [originalVideo, setOriginalVideo] = useState("");
@@ -64,7 +64,7 @@ const UploadForm = () => {
     
     setSelectedFile(file || null);
     setYoutubeLink("");
-    setProcessingType("");
+    setProcessingType("Vocal and Music");
     setErrorMessage("");
     resetProcessedData();
   }, []);
@@ -80,7 +80,7 @@ const UploadForm = () => {
     setYoutubeLink(link);
     setSelectedFile(null);
     setOriginalAudio("");
-    setProcessingType("");
+    setProcessingType("Vocal and Music");
     setErrorMessage("");
     resetProcessedData();
   };
@@ -227,7 +227,8 @@ const UploadForm = () => {
         {originalAudio && (
           <div className="audio-preview">
             <h3>Original File</h3>
-            <AudioPlayer src={originalAudio} />
+            {/* <AudioPlayer src={originalAudio} /> */}
+            <audio controls src={originalAudio}></audio>
           </div>
         )}
       </div>
@@ -241,7 +242,7 @@ const UploadForm = () => {
             disabled={isLoading}
             aria-label="Processing type selection"
           >
-            <option value="">-- Select Option --</option>
+            {/* <option value="">-- Select Option --</option> */}
             <option value="Vocal and Music">Vocal and Music</option>
             {/* Cat Version option hidden but functionality remains in code */}
           </select>
@@ -251,7 +252,7 @@ const UploadForm = () => {
       <button
         type="submit"
         className="process-button"
-        disabled={isLoading || !processingType || (!selectedFile && !youtubeLink)}
+        disabled={isLoading  || (!selectedFile && !youtubeLink)}
         aria-busy={isLoading}
       >
         {isLoading ? "Processing..." : "Process"}
